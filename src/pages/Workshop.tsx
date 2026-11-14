@@ -154,7 +154,7 @@ export function Workshop() {
     <div className={`workshop workshop-${mode}`}>
       {mode === 'three' && (
         <>
-          <aside className="ws-left panel">
+          <aside className="ws-left draft-paper on-paper">
             <div className="ws-panel-head"><Icon name="edit" size={15} /> 内容</div>
             <div className="ws-panel-scroll"><ContentPanel poem={poem} setPoem={setPoem} bodyRef={bodyRef} /></div>
           </aside>

@@ -6,12 +6,17 @@ import { makePoem } from '../lib/cardStyle'
 import { playSound } from '../lib/sound'
 import { Icon } from '../components/Icon'
 import { Stepper, Select } from '../components/ui'
+import { RoomTag } from '../components/RoomTag'
+import { SettingsSlip } from '../components/SettingsSlip'
 
 interface Die { category: string; locked: boolean; words: string[]; faceIndex: number; spin: number }
 interface Recent { words: string[]; at: number }
 
 const FACE_ROT = [
   { x: 0, y: 0 }, { x: 0, y: 180 }, { x: 0, y: -90 }, { x: 0, y: 90 }, { x: -90, y: 0 }, { x: 90, y: 0 },
+]
+const SCATTER = [
+  { y: 12, r: -5 }, { y: -16, r: 4 }, { y: 6, r: -3 }, { y: -9, r: 6 }, { y: 15, r: -4 },
 ]
 const RECENT_KEY = 'yijian-dice-recent-v1'
 
@@ -121,10 +126,7 @@ export function Dice() {
   return (
     <div className="game-room dice-room">
       <div className="game-main">
-        <div className="game-head">
-          <h1 className="game-title font-display">意象骰子</h1>
-          <p className="game-sub soft">掷出几个词，让它们撞出一首诗。</p>
-        </div>
+        <RoomTag name="意象骰子" />
 
         <div className="game-scroll dice-scroll">
           <div className={`dice-tray ${rolling ? 'rolling' : ''}`}>
@@ -132,16 +134,20 @@ export function Dice() {
               const rot = FACE_ROT[d.faceIndex]
               const rx = rot.x + d.spin * 360
               const ry = rot.y + d.spin * 360
+              const sc = SCATTER[i % SCATTER.length]
               return (
-                <div className="die-col" key={i}>
+                <div className="die-col" key={i} style={{ '--sy': `${sc.y}px`, '--sr': `${sc.r}deg` } as React.CSSProperties}>
                   <div className={`die ${d.locked ? 'die-locked' : ''}`}>
                     <div className="die-tilt">
                       <div className="die-cube" style={{ transform: `rotateX(${rx}deg) rotateY(${ry}deg)`, transitionDuration: reduced ? '0ms' : '950ms' }}>
                         {d.words.map((w, fi) => (
-                          <div className={`die-face face-${fi}`} key={fi}><span className="die-word font-poem">{w}</span></div>
+                          <div className={`die-face face-${fi}`} key={fi}>
+                            <span className="die-word font-poem" style={{ opacity: rolling || fi === d.faceIndex ? 1 : 0 }}>{w}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
+                    {d.locked && <span className="die-seal font-display" title="已锁定">定</span>}
                   </div>
                   <div className="die-controls">
                     <Select options={catOptions} value={d.category} onChange={(v) => setCategory(i, v)} ariaLabel={`第${i + 1}颗骰子的类别`} />
@@ -154,14 +160,16 @@ export function Dice() {
             })}
           </div>
 
-          <button className="btn btn-seal btn-lg dice-roll-btn" onClick={roll} disabled={rolling}>
+          <button className={`btn btn-lg dice-roll-btn ${hasRolled ? 'btn-line' : 'btn-seal'}`} onClick={roll} disabled={rolling}>
             <Icon name="dice" size={18} /> {rolling ? '骰子滚动中…' : hasRolled ? '再掷一次' : '掷骰子'}
           </button>
 
           {hasRolled && (
             <div className="dice-result rise-in">
-              <div className="dice-words">
-                {words.map((w, i) => <span className="dice-word-chip font-display" key={i}>{w}</span>)}
+              <div className="dice-words paper-surface">
+                {words.map((w, i) => (
+                  <span className="dice-word-big font-display" key={i}>{w}</span>
+                ))}
               </div>
               <div className="dice-actions">
                 <button className="btn btn-seal" onClick={writePoem}><Icon name="pen" size={16} /> 用这些词写诗</button>
@@ -173,47 +181,45 @@ export function Dice() {
         </div>
       </div>
 
-      <aside className="game-aside on-desk-scroll">
-        <div className="game-aside-inner">
-          <div className="game-aside-block">
-            <div className="spread">
-              <span className="field-label">骰子数量</span>
-              <Stepper value={ds.count} min={1} max={5} onChange={setCount} />
-            </div>
-            <div className="field-hint">每颗骰子可单独选类别、单独锁定。锁定的词在下次掷骰时保留。</div>
+      <SettingsSlip label="骰子设置">
+        <div className="game-aside-block">
+          <div className="spread">
+            <span className="field-label">骰子数量</span>
+            <Stepper value={ds.count} min={1} max={5} onChange={setCount} />
           </div>
-
-          <div className="game-aside-block">
-            <div className="field-label">自定义词库</div>
-            <textarea
-              className="text-input dice-custom" rows={4}
-              placeholder={'把自己的词放进来，\n用逗号或换行分隔。\n选「自定义」类别即可使用。'}
-              value={ds.custom} onChange={(e) => setGameSettings('dice', { custom: e.target.value })}
-            />
-            <div className="field-hint">{parseCustom(ds.custom).length} 个词</div>
-          </div>
-
-          <div className="game-aside-block">
-            <div className="field-label">最近掷出</div>
-            {recent.length === 0 ? (
-              <div className="field-hint">还没有记录。掷一次试试。</div>
-            ) : (
-              <div className="dice-recent">
-                {recent.map((r, i) => (
-                  <button className="dice-recent-row" key={i} onClick={() => reuseRecent(r)} title="重新取用这组词">
-                    <span className="dice-recent-words font-poem">{r.words.join(' · ')}</span>
-                    <Icon name="refresh" size={13} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <p className="game-aside-note field-hint">
-            骰子只给意象，不给句子。把撞出来的词带去工坊自己写，或送去双盲、遮字，看看它们长成什么。
-          </p>
+          <div className="field-hint">每颗骰子可单独选类别、单独锁定。锁定的词在下次掷骰时保留。</div>
         </div>
-      </aside>
+
+        <div className="game-aside-block">
+          <div className="field-label">自定义词库</div>
+          <textarea
+            className="text-input dice-custom" rows={4}
+            placeholder={'把自己的词放进来，\n用逗号或换行分隔。\n选「自定义」类别即可使用。'}
+            value={ds.custom} onChange={(e) => setGameSettings('dice', { custom: e.target.value })}
+          />
+          <div className="field-hint">{parseCustom(ds.custom).length} 个词</div>
+        </div>
+
+        <div className="game-aside-block">
+          <div className="field-label">最近掷出</div>
+          {recent.length === 0 ? (
+            <div className="field-hint">还没有记录。掷一次试试。</div>
+          ) : (
+            <div className="dice-recent">
+              {recent.map((r, i) => (
+                <button className="dice-recent-row" key={i} onClick={() => reuseRecent(r)} title="重新取用这组词">
+                  <span className="dice-recent-words font-poem">{r.words.join(' · ')}</span>
+                  <Icon name="refresh" size={13} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p className="game-aside-note field-hint">
+          骰子只给意象，不给句子。把撞出来的词带去工坊自己写，或送去双盲、遮字，看看它们长成什么。
+        </p>
+      </SettingsSlip>
     </div>
   )
 }

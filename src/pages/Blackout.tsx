@@ -7,6 +7,8 @@ import { downloadBlob } from '../lib/export'
 import { playSound } from '../lib/sound'
 import { Icon } from '../components/Icon'
 import { Segmented, Select, Swatches, Slider } from '../components/ui'
+import { RoomTag } from '../components/RoomTag'
+import { SettingsSlip } from '../components/SettingsSlip'
 
 interface Token { text: string; space: boolean }
 interface Rect { x: number; y: number; w: number; h: number }
@@ -107,7 +109,7 @@ export function Blackout() {
   const [circled, setCircled] = useState<Set<number>>(new Set())
   const [strokes, setStrokes] = useState<Stroke[]>([])
   const [title, setTitle] = useState('')
-  const theme = handoff?.theme || []
+  const [theme] = useState<string[]>(() => handoff?.theme || [])
 
   const tokens = useMemo(() => segment(source.text, bos.snap), [source.text, bos.snap])
   const pageRef = useRef<HTMLDivElement>(null)
@@ -246,12 +248,14 @@ export function Blackout() {
 
   const clearAll = () => { setBlacked(new Set()); setCircled(new Set()); setStrokes([]); const c = canvasRef.current; if (c) { const ctx = c.getContext('2d')!; ctx.clearRect(0, 0, c.width, c.height) } playSound('flip') }
 
+  const started = blacked.size > 0
   const poemLines = useMemo(() => {
+    if (!started) return []
     const out: string[] = []; let cur = ''
     tokens.forEach((t, i) => { if (t.space) return; if (blacked.has(i)) { if (cur.trim()) { out.push(cur); cur = '' } } else cur += t.text })
     if (cur.trim()) out.push(cur)
     return out
-  }, [tokens, blacked])
+  }, [tokens, blacked, started])
 
   const renderExport = useCallback((): string => {
     const { w, h, font, fontSize } = sizeRef.current
@@ -286,79 +290,109 @@ export function Blackout() {
   return (
     <div className="game-room blackout-room">
       <div className="game-main">
-        <div className="game-head">
-          <h1 className="game-title font-display">遮字诗</h1>
-          <p className="game-sub soft">涂掉多余的，让剩下的词自己成诗。</p>
-        </div>
-        <div className="bo-toolbar">
-          <div className="bo-tools">
-            <button className={`bo-tool ${tool === 'paint' ? 'active' : ''}`} onClick={() => setTool('paint')} title="涂黑"><Icon name="blackout" size={17} /><span>涂黑</span></button>
-            <button className={`bo-tool ${tool === 'eraser' ? 'active' : ''}`} onClick={() => setTool('eraser')} title="擦除"><Icon name="eraser" size={17} /><span>擦除</span></button>
-            <button className={`bo-tool ${tool === 'circle' ? 'active' : ''}`} onClick={() => setTool('circle')} title="圈选保留"><Icon name="circle" size={17} /><span>圈选</span></button>
-            <button className={`bo-tool ${tool === 'pan' ? 'active' : ''}`} onClick={() => setTool('pan')} title="移动纸张（滚动）"><Icon name="hand" size={17} /><span>移动</span></button>
+        <RoomTag name="遮字诗" />
+        <div className="bo-work">
+          <div className="bo-stage on-desk-scroll">
+            <div className={`bo-page bo-${source.layout}`} ref={pageRef}>
+              <span className="bo-tape bo-tape-l" aria-hidden="true" />
+              <span className="bo-tape bo-tape-r" aria-hidden="true" />
+              <div className="bo-masthead">
+                {source.layout === 'news' && <span className="bo-masthead-date font-poem">丙午年九月<br />晨刊第壹佰貳拾期</span>}
+                <span className="bo-masthead-title font-display">{source.title}</span>
+                <span className="bo-masthead-kind">{source.kind}{source.layout === 'news' ? ' · 零售每份銅元拾枚' : ''}</span>
+              </div>
+              {source.layout === 'news' && (
+                <figure className="bo-photo" aria-hidden="true">
+                  <span className="bo-photo-img" />
+                  <figcaption className="bo-photo-cap">城南舊站臺昨日重開，晨霧未散。</figcaption>
+                </figure>
+              )}
+              <div className="bo-text font-poem" ref={textRef} style={{ columnCount: source.columns }}>
+                {tokens.map((t, i) => t.space
+                  ? <span key={i} className="bo-space">{t.text}</span>
+                  : <span key={i} data-i={i} className={`bo-token ${theme.length && theme.some((w) => t.text.includes(w)) ? 'bo-hint' : ''}`}>{t.text}</span>)}
+              </div>
+              {source.layout === 'news' && (
+                <div className="bo-footer" aria-hidden="true">
+                  <div className="bo-footer-boxes">
+                    <span className="bo-ad font-poem">燈籠鋪<br />後巷老號</span>
+                    <span className="bo-ad font-poem">渡船停擺<br />行人繞行</span>
+                    <span className="bo-ad font-poem">初雪將至<br />蘆葦先白</span>
+                  </div>
+                  <div className="bo-footer-line">第壹版 · 城南舊報 · 每晨發行</div>
+                </div>
+              )}
+              <canvas
+                ref={canvasRef} className={`bo-canvas bo-cursor-${tool}`}
+                onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
+              />
+            </div>
           </div>
-          <div className="bo-brush"><Slider label="笔触" value={bos.brush} min={8} max={60} onChange={(v) => setGameSettings('blackout', { brush: v })} defaultValue={26} /></div>
-          <button className="btn btn-ghost btn-sm" onClick={clearAll}><Icon name="refresh" size={15} /> 清空</button>
-        </div>
-        <div className="bo-stage on-desk-scroll">
-          <div className={`bo-page bo-${source.layout}`} ref={pageRef}>
-            <div className="bo-masthead">
-              <span className="bo-masthead-title font-display">{source.title}</span>
-              <span className="bo-masthead-kind">{source.kind}</span>
+
+          <div className="bo-toolshelf" role="toolbar" aria-label="遮字工具">
+            <button className={`bo-obj bo-obj-pen ${tool === 'paint' ? 'active' : ''}`} onClick={() => setTool('paint')} title="涂黑">
+              <span className="bo-obj-art" aria-hidden="true"><i className="obj-pen-cap" /><i className="obj-pen-body" /><i className="obj-pen-nib" /></span>
+              <span className="bo-obj-label">涂黑</span>
+            </button>
+            <button className={`bo-obj bo-obj-eraser ${tool === 'eraser' ? 'active' : ''}`} onClick={() => setTool('eraser')} title="擦除">
+              <span className="bo-obj-art" aria-hidden="true"><i className="obj-eraser-top" /><i className="obj-eraser-base" /></span>
+              <span className="bo-obj-label">擦除</span>
+            </button>
+            <button className={`bo-obj bo-obj-pencil ${tool === 'circle' ? 'active' : ''}`} onClick={() => setTool('circle')} title="圈选保留">
+              <span className="bo-obj-art" aria-hidden="true"><i className="obj-pencil-tip" /><i className="obj-pencil-body" /><i className="obj-pencil-end" /></span>
+              <span className="bo-obj-label">圈选</span>
+            </button>
+            <button className={`bo-obj bo-obj-weight ${tool === 'pan' ? 'active' : ''}`} onClick={() => setTool('pan')} title="移动纸张">
+              <span className="bo-obj-art" aria-hidden="true"><i className="obj-weight-bar" /></span>
+              <span className="bo-obj-label">移动</span>
+            </button>
+          </div>
+
+          <div className="bo-side">
+            <div className="game-aside-block bo-remaining-block">
+              <div className="spread"><span className="field-label">剩下的诗</span><span className="faint font-num">{started ? `${keptCount} 字` : '—'}</span></div>
+              <div className="bo-remaining paper-surface on-paper">
+                {poemLines.length === 0
+                  ? <span className="bo-remaining-empty faint">涂黑之后，留下的词会在这里成诗。</span>
+                  : poemLines.map((l, i) => <div className="bo-remaining-line font-poem" key={i}>{l}</div>)}
+              </div>
             </div>
-            <div className="bo-text font-poem" ref={textRef} style={{ columnCount: source.columns }}>
-              {tokens.map((t, i) => t.space
-                ? <span key={i} className="bo-space">{t.text}</span>
-                : <span key={i} data-i={i} className={`bo-token ${theme.length && theme.some((w) => t.text.includes(w)) ? 'bo-hint' : ''}`}>{t.text}</span>)}
+            <div className="game-aside-block">
+              <div className="field-label">题目</div>
+              <input className="text-input font-poem" value={title} placeholder={source.title} onChange={(e) => setTitle(e.target.value)} />
             </div>
-            <canvas
-              ref={canvasRef} className={`bo-canvas bo-cursor-${tool}`}
-              onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
-            />
+            <div className="bo-actions">
+              <button className="btn btn-seal btn-block" onClick={makeCard}><Icon name="workshop" size={16} /> 做成卡</button>
+              <button className="btn btn-line btn-block" onClick={exportPNG}><Icon name="download" size={15} /> 导出这一页 PNG</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <aside className="game-aside on-desk-scroll">
-        <div className="game-aside-inner">
-          <div className="game-aside-block">
-            <div className="field-label">选一张旧纸</div>
-            <Select value={textId} onChange={setTextId} ariaLabel="选择文本"
-              options={BLACKOUT_TEXTS.map((t) => ({ value: t.id, label: `${t.title}（${t.kind}）` }))} />
-            {theme.length > 0 && <div className="field-hint">主题提示：{theme.join(' · ')}（相关词已标朱）</div>}
-          </div>
-
-          <div className="game-aside-block">
-            <div className="field-label">吸附粒度</div>
-            <Segmented block value={bos.snap} onChange={(v) => setGameSettings('blackout', { snap: v as any })}
-              options={[{ value: 'word', label: '词' }, { value: 'char', label: '字' }, { value: 'free', label: '自由' }]} />
-            <div className="field-label" style={{ marginTop: 6 }}>笔触质感</div>
-            <Segmented block value={bos.texture} onChange={(v) => setGameSettings('blackout', { texture: v as any })}
-              options={[{ value: 'marker', label: '马克' }, { value: 'ink', label: '墨' }, { value: 'tape', label: '胶带' }]} />
-            <div className="field-label" style={{ marginTop: 6 }}>颜色</div>
-            <Swatches colors={MARK_COLORS} value={bos.color} onChange={(v) => setGameSettings('blackout', { color: v })} />
-          </div>
-
-          <div className="game-aside-block bo-remaining-block">
-            <div className="spread"><span className="field-label">剩下的诗</span><span className="faint font-num">{keptCount} 字</span></div>
-            <div className="bo-remaining paper-surface on-paper">
-              {poemLines.length === 0
-                ? <span className="bo-remaining-empty faint">涂黑之后，留下的词会在这里成诗。</span>
-                : poemLines.map((l, i) => <div className="bo-remaining-line font-poem" key={i}>{l}</div>)}
-            </div>
-          </div>
-
-          <div className="game-aside-block">
-            <div className="field-label">题目</div>
-            <input className="text-input font-poem" value={title} placeholder={source.title} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-
-          <div className="bo-actions">
-            <button className="btn btn-seal btn-block" onClick={makeCard}><Icon name="workshop" size={16} /> 做成卡</button>
-            <button className="btn btn-line btn-block" onClick={exportPNG}><Icon name="download" size={15} /> 导出这一页 PNG</button>
-          </div>
+      <SettingsSlip label="遮字设置">
+        <div className="game-aside-block">
+          <div className="field-label">选一张旧纸</div>
+          <Select value={textId} onChange={setTextId} ariaLabel="选择文本"
+            options={BLACKOUT_TEXTS.map((t) => ({ value: t.id, label: `${t.title}（${t.kind}）` }))} />
+          {theme.length > 0 && <div className="field-hint">主题提示：{theme.join(' · ')}（相关词已标朱）</div>}
         </div>
-      </aside>
+
+        <div className="game-aside-block">
+          <div className="field-label">吸附粒度</div>
+          <Segmented block value={bos.snap} onChange={(v) => setGameSettings('blackout', { snap: v as any })}
+            options={[{ value: 'word', label: '词' }, { value: 'char', label: '字' }, { value: 'free', label: '自由' }]} />
+          <div className="field-label" style={{ marginTop: 6 }}>笔触质感</div>
+          <Segmented block value={bos.texture} onChange={(v) => setGameSettings('blackout', { texture: v as any })}
+            options={[{ value: 'marker', label: '马克' }, { value: 'ink', label: '墨' }, { value: 'tape', label: '胶带' }]} />
+          <div className="field-label" style={{ marginTop: 6 }}>颜色</div>
+          <Swatches colors={MARK_COLORS} value={bos.color} onChange={(v) => setGameSettings('blackout', { color: v })} />
+          <div className="field-label" style={{ marginTop: 6 }}>笔触粗细</div>
+          <Slider label="" value={bos.brush} min={8} max={60} onChange={(v) => setGameSettings('blackout', { brush: v })} defaultValue={26} />
+          <button className="btn btn-line btn-block" onClick={clearAll}><Icon name="refresh" size={15} /> 清空这一页</button>
+        </div>
+
+        <p className="game-aside-note field-hint">涂黑多余的词，留下的会自己成诗。圈选可把想留的词标出来。桌边的笔拿起来就能用。</p>
+      </SettingsSlip>
     </div>
   )
 }

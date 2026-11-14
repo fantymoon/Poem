@@ -38,7 +38,7 @@ try {
   console.log('POEM_AFTER_PAINT=', JSON.stringify(poem1), 'KEPT=', kept1)
 
   // eraser: erase one blackened token, kept count should rise
-  await page.evaluate(() => { [...document.querySelectorAll('.bo-tool')].find(b => b.textContent.includes('擦除'))?.click() })
+  await page.evaluate(() => { [...document.querySelectorAll('.bo-obj')].find(b => b.textContent.includes('擦除'))?.click() })
   await sleep(120)
   const eraseTarget = toBlack[0]
   await page.mouse.click(eraseTarget.x, eraseTarget.y)
@@ -47,7 +47,7 @@ try {
   console.log('KEPT_AFTER_ERASE=', kept2, '(was', kept1 + ')')
 
   // circle tool: circle a kept token
-  await page.evaluate(() => { [...document.querySelectorAll('.bo-tool')].find(b => b.textContent.includes('圈选'))?.click() })
+  await page.evaluate(() => { [...document.querySelectorAll('.bo-obj')].find(b => b.textContent.includes('圈选'))?.click() })
   await sleep(120)
   const circleTarget = tokens.find(t => keepIdx.has(t.i)) || tokens[0]
   await page.mouse.click(circleTarget.x, circleTarget.y)
@@ -55,7 +55,7 @@ try {
   await page.screenshot({ path: SHOTS + 'blackout-circle.png' })
 
   // back to paint, test ink texture + color
-  await page.evaluate(() => { [...document.querySelectorAll('.bo-tool')].find(b => b.textContent.includes('涂黑'))?.click() })
+  await page.evaluate(() => { [...document.querySelectorAll('.bo-obj')].find(b => b.textContent.includes('涂黑'))?.click() })
   await sleep(100)
   await page.evaluate(() => { [...document.querySelectorAll('.seg-item')].find(b => b.textContent === '墨')?.click() })
   await sleep(100)
@@ -95,7 +95,7 @@ try {
   for (const t of tokens2.filter(t => !keep2.has(t.i))) { await page.mouse.click(t.x, t.y); await sleep(10) }
   await sleep(200)
   // set a title
-  await page.evaluate(() => { const el = document.querySelector('.game-aside .text-input'); const s = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; s.call(el, '城南'); el.dispatchEvent(new Event('input', { bubbles: true })) })
+  await page.evaluate(() => { const el = document.querySelector('.bo-side .text-input'); const s = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; s.call(el, '城南'); el.dispatchEvent(new Event('input', { bubbles: true })) })
   await sleep(150)
   const poemFinal = await page.evaluate(() => [...document.querySelectorAll('.bo-remaining-line')].map(e => e.textContent))
   console.log('POEM_FINAL=', JSON.stringify(poemFinal))

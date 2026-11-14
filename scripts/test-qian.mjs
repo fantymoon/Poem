@@ -10,7 +10,7 @@ try {
   await page.goto('http://localhost:5173/#/qian', { waitUntil: 'networkidle0' })
   await new Promise(r => setTimeout(r, 500))
   // click draw
-  await page.evaluate(() => { [...document.querySelectorAll('button')].find(b => b.textContent.trim() === '摇签' || b.textContent.includes('摇签'))?.click() })
+  await page.evaluate(() => document.querySelector('.qian-tube-wrap')?.click())
   await new Promise(r => setTimeout(r, 1300))
   await page.screenshot({ path: 'D:/CodeProject/Poem/.shots/qian-revealed.png' })
   const slip = await page.evaluate(() => {

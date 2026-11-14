@@ -9,9 +9,8 @@ try {
   page.on('pageerror', (e) => errors.push('PAGEERROR: ' + e.message))
   const dl = 'D:/CodeProject/Poem/.shots/dl'
   fs.mkdirSync(dl, { recursive: true })
-  const client = await page.createCDPSession()
+  const client = await browser.target().createCDPSession()
   await client.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dl, eventsEnabled: true }).catch(() => {})
-  await client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: dl }).catch(() => {})
 
   await page.goto('http://localhost:5173/', { waitUntil: 'networkidle0' })
   await new Promise(r => setTimeout(r, 500))

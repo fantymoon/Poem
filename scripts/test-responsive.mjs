@@ -38,7 +38,7 @@ try {
   await sleep(200)
   const scrollPaint = await page.evaluate((s) => document.querySelector(s)?.scrollTop, stageSel)
   // switch to pan tool
-  await page.evaluate(() => { [...document.querySelectorAll('.bo-tool')].find(b => b.title.includes('移动'))?.click() })
+  await page.evaluate(() => { [...document.querySelectorAll('.bo-obj')].find(b => b.title.includes('移动'))?.click() })
   await sleep(200)
   await page.touchscreen.touchStart(pageBox.x, pageBox.y)
   await page.touchscreen.touchMove(pageBox.x, pageBox.y - 160)
@@ -48,6 +48,17 @@ try {
   const scrollPan = await page.evaluate((s) => document.querySelector(s)?.scrollTop, stageSel)
   console.log('BLACKOUT scroll before=', scrollBefore, 'afterPaintDrag=', scrollPaint, 'afterPanDrag=', scrollPan)
   await page.screenshot({ path: SHOTS + 'm-blackout-pan.png' })
+
+  // ---- TABLET two-column (900px), night ----
+  await page.setViewport({ width: 900, height: 800, isMobile: false, hasTouch: false, deviceScaleFactor: 1 })
+  await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: false })
+  for (const [name, route] of ROUTES) {
+    await page.goto('http://localhost:5173/#' + route, { waitUntil: 'networkidle0' })
+    await sleep(500)
+    await page.screenshot({ path: SHOTS + 't-' + name + '.png' })
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    console.log('TABLET', name, 'hOverflow=', overflow)
+  }
 
   // ---- DAY theme, desktop ----
   await page.setViewport({ width: 1440, height: 900, isMobile: false, hasTouch: false, deviceScaleFactor: 1 })

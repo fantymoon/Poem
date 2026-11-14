@@ -6,6 +6,7 @@ import type { PoemLine } from '../lib/types'
 import { playSound } from '../lib/sound'
 import { Icon } from '../components/Icon'
 import { Segmented, Stepper, ToggleRow, Slider } from '../components/ui'
+import { RoomTag } from '../components/RoomTag'
 
 type Phase = 'setup' | 'handoff' | 'writing' | 'reveal'
 interface Player { id: string; name: string; color: string }
@@ -32,7 +33,7 @@ export function Blind() {
     { id: 'b', name: names[1] || '乙', color: AUTHOR_COLORS[1] },
   ], [names])
 
-  const theme = handoff?.theme || []
+  const [theme] = useState<string[]>(() => handoff?.theme || [])
   useEffect(() => { if (handoff?.target === 'blind' || handoff?.theme) setHandoff(null) }, [])
 
   const [phase, setPhase] = useState<Phase>('setup')
@@ -44,10 +45,16 @@ export function Blind() {
   const [seedDraft, setSeedDraft] = useState('')
   const [title, setTitle] = useState('')
   const [revealed, setRevealed] = useState(0)
+  const [showRules, setShowRules] = useState(false)
+  const [folding, setFolding] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const revealTimer = useRef<number>()
+  const foldTimer = useRef<number>()
+  useEffect(() => () => { if (foldTimer.current) window.clearTimeout(foldTimer.current) }, [])
 
   const total = bs.lines
+  const creaseText = theme.join('·')
+  const creaseFs = Math.max(14, Math.min(27, Math.floor(290 / ((Array.from(creaseText).length || 1) * 1.15))))
   const curPlayer = players[assign[turn] === 'b' ? 1 : 0]
   const isFirstTurnForPlayer = assign.slice(0, turn).every((a) => a !== assign[turn])
 
@@ -60,12 +67,19 @@ export function Blind() {
   }
 
   const start = () => {
+    if (folding) return
     try { localStorage.setItem(NAMES_KEY, JSON.stringify(names)) } catch { /* ignore */ }
-    setAssign(buildAssign())
-    setLines(Array.from({ length: total }, () => ({ text: '' })))
-    setTurn(0); setDraft(''); setSeeds({}); setSeedDraft(''); setTitle(''); setRevealed(0)
-    setPhase('handoff')
+    const go = () => {
+      setFolding(false)
+      setAssign(buildAssign())
+      setLines(Array.from({ length: total }, () => ({ text: '' })))
+      setTurn(0); setDraft(''); setSeeds({}); setSeedDraft(''); setTitle(''); setRevealed(0)
+      setPhase('handoff')
+    }
     playSound('flip')
+    if (reduced) { go(); return }
+    setFolding(true)
+    foldTimer.current = window.setTimeout(go, 780)
   }
 
   const ready = () => { setPhase('writing'); playSound('flip'); setTimeout(() => inputRef.current?.focus(), 80) }
@@ -126,63 +140,96 @@ export function Blind() {
     playSound('click'); navigate('/')
   }
   const replay = () => { setAssign(buildAssign()); setLines(Array.from({ length: total }, () => ({ text: '' }))); setTurn(0); setDraft(''); setSeeds({}); setSeedDraft(''); setTitle(''); setRevealed(0); setPhase('handoff'); playSound('flip') }
-  const rematch = () => { setPhase('setup'); playSound('flip') }
+  const rematch = () => { setFolding(false); setShowRules(false); setPhase('setup'); playSound('flip') }
 
   /* ---------------- setup ---------------- */
   if (phase === 'setup') {
     return (
       <div className="blind-room">
-        <div className="game-head">
-          <h1 className="game-title font-display">双盲诗</h1>
-          <p className="game-sub soft">两个人，一支笔，谁也看不见对方写了什么。</p>
-        </div>
+        <RoomTag name="双盲诗" />
         <div className="blind-scroll">
-          <div className="blind-setup paper-surface on-paper paper-in">
-            <div className="blind-fold" />
-            <div className="blind-players">
-              {players.map((p, i) => (
-                <div className="blind-player" key={p.id}>
-                  <span className="blind-dot" style={{ background: p.color }} />
-                  <input
-                    className="blind-name-input font-poem" value={names[i]} maxLength={8}
-                    onChange={(e) => setNames((n) => { const c = [...n] as [string, string]; c[i] = e.target.value; return c })}
-                    aria-label={`第${i + 1}位作者的名字`}
-                  />
+          <div className={`blind-paper3d ${folding ? 'is-folding' : ''}`}>
+            <div className={`blind-paper-flip ${showRules ? 'is-flipped' : ''}`}>
+              <div className="blind-face blind-front paper-surface on-paper">
+                <div className="blind-halves">
+                  <div className="blind-half blind-half-a">
+                    <span className="blind-half-label font-display">甲</span>
+                    <span className="blind-half-seat faint">左半页</span>
+                    <div className="blind-half-name">
+                      <span className="blind-dot" style={{ background: players[0].color }} />
+                      <input
+                        className="blind-name-input font-poem" value={names[0]} maxLength={8}
+                        onChange={(e) => setNames((n) => { const c = [...n] as [string, string]; c[0] = e.target.value; return c })}
+                        aria-label="第一位作者的名字"
+                      />
+                    </div>
+                  </div>
+                  <div className="blind-half blind-half-b">
+                    <span className="blind-half-label font-display">乙</span>
+                    <span className="blind-half-seat faint">右半页</span>
+                    <div className="blind-half-name">
+                      <span className="blind-dot" style={{ background: players[1].color }} />
+                      <input
+                        className="blind-name-input font-poem" value={names[1]} maxLength={8}
+                        onChange={(e) => setNames((n) => { const c = [...n] as [string, string]; c[1] = e.target.value; return c })}
+                        aria-label="第二位作者的名字"
+                      />
+                    </div>
+                  </div>
+                  <div className="blind-crease" aria-hidden="true" />
+                  {theme.length > 0 && (
+                    <div className="blind-crease-word">
+                      <span className="blind-crease-text font-poem" style={{ fontSize: creaseFs }}>{creaseText}</span>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-            {theme.length > 0 && <div className="blind-theme">主题词：<span className="font-display">{theme.join(' · ')}</span></div>}
+                <div className="blind-front-foot">
+                  <button className="blind-rules-btn" onClick={() => { setShowRules(true); playSound('flip') }}>
+                    <Icon name="settings" size={14} /> 规矩
+                  </button>
+                  <button className="btn btn-seal btn-lg" onClick={start} disabled={folding}>
+                    <Icon name="blind" size={18} /> 折好纸，开始
+                  </button>
+                </div>
+              </div>
 
-            <div className="blind-form">
-              <div className="blind-field">
-                <span className="field-label">行数</span>
-                <Stepper value={bs.lines} min={2} max={12} onChange={(v) => setGameSettings('blind', { lines: v })} />
+              <div className="blind-face blind-back paper-surface on-paper">
+                <div className="blind-back-head">
+                  <span className="blind-back-title font-display">规矩</span>
+                  <button className="blind-rules-btn" onClick={() => { setShowRules(false); playSound('flip') }}>
+                    <Icon name="refresh" size={14} /> 合上
+                  </button>
+                </div>
+                <div className="blind-form">
+                  <div className="blind-field">
+                    <span className="field-label">行数</span>
+                    <Stepper value={bs.lines} min={2} max={12} onChange={(v) => setGameSettings('blind', { lines: v })} />
+                  </div>
+                  <div className="blind-field">
+                    <span className="field-label">怎么分</span>
+                    <Segmented value={bs.allocation} onChange={(v) => setGameSettings('blind', { allocation: v as any })}
+                      options={[{ value: 'alternate', label: '交替' }, { value: 'halves', label: '上下半' }, { value: 'random', label: '随机' }]} />
+                  </div>
+                  <div className="blind-field">
+                    <span className="field-label">遮蔽程度</span>
+                    <Segmented value={bs.blind} onChange={(v) => setGameSettings('blind', { blind: v as any })}
+                      options={[{ value: 'full', label: '全遮' }, { value: 'lastchar', label: '只露末字' }]} />
+                  </div>
+                  <div className="blind-field">
+                    <span className="field-label">揭晓方式</span>
+                    <Segmented value={bs.reveal} onChange={(v) => setGameSettings('blind', { reveal: v as any })}
+                      options={[{ value: 'slow', label: '慢' }, { value: 'fast', label: '快' }, { value: 'manual', label: '手动' }]} />
+                  </div>
+                  <div className="blind-field blind-field-wide">
+                    <Slider label="每行字数上限（0 为不限）" value={bs.maxChars} min={0} max={40} onChange={(v) => setGameSettings('blind', { maxChars: v })} defaultValue={0} />
+                  </div>
+                  <ToggleRow label="合题" hint="每人首次落笔时写一个题眼，最后合成题目。" checked={bs.blindTitle} onChange={(v) => setGameSettings('blind', { blindTitle: v })} />
+                  <ToggleRow label="落笔后即遮" hint="每次落笔立刻交给下一位，不留痕迹。" checked={bs.hideAfterSeal} onChange={(v) => setGameSettings('blind', { hideAfterSeal: v })} />
+                </div>
               </div>
-              <div className="blind-field">
-                <span className="field-label">怎么分</span>
-                <Segmented value={bs.allocation} onChange={(v) => setGameSettings('blind', { allocation: v as any })}
-                  options={[{ value: 'alternate', label: '交替' }, { value: 'halves', label: '上下半' }, { value: 'random', label: '随机' }]} />
-              </div>
-              <div className="blind-field">
-                <span className="field-label">遮蔽程度</span>
-                <Segmented value={bs.blind} onChange={(v) => setGameSettings('blind', { blind: v as any })}
-                  options={[{ value: 'full', label: '全遮' }, { value: 'lastchar', label: '只露末字' }]} />
-              </div>
-              <div className="blind-field">
-                <span className="field-label">揭晓方式</span>
-                <Segmented value={bs.reveal} onChange={(v) => setGameSettings('blind', { reveal: v as any })}
-                  options={[{ value: 'slow', label: '慢' }, { value: 'fast', label: '快' }, { value: 'manual', label: '手动' }]} />
-              </div>
-              <div className="blind-field blind-field-wide">
-                <Slider label="每行字数上限（0 为不限）" value={bs.maxChars} min={0} max={40} onChange={(v) => setGameSettings('blind', { maxChars: v })} defaultValue={0} />
-              </div>
-              <ToggleRow label="合题" hint="每人首次落笔时写一个题眼，最后合成题目。" checked={bs.blindTitle} onChange={(v) => setGameSettings('blind', { blindTitle: v })} />
-              <ToggleRow label="落笔后即遮" hint="每次落笔立刻交给下一位，不留痕迹。" checked={bs.hideAfterSeal} onChange={(v) => setGameSettings('blind', { hideAfterSeal: v })} />
             </div>
-
-            <button className="btn btn-seal btn-lg btn-block" onClick={start}><Icon name="blind" size={18} /> 折好纸，开始</button>
-            <p className="blind-tip field-hint">在同一台设备上传递。轮到谁，就把设备交给谁。</p>
           </div>
+          <p className="blind-tip field-hint">在同一台设备上传递。轮到谁，就把设备交给谁。{theme.length === 0 && '规矩写在纸背。'}</p>
         </div>
       </div>
     )

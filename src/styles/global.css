@@ -24,25 +24,48 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- the desk: lamp light + grain + vignette ---------- */
+/* ---------- the desk: wood + lamp light from top-left + vignette ---------- */
 .desk-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% -18%, rgba(214, 170, 96, 0.16), rgba(214, 170, 96, 0) 55%),
-    radial-gradient(90% 70% at 82% 8%, rgba(178, 56, 42, 0.07), rgba(178, 56, 42, 0) 60%),
-    radial-gradient(140% 120% at 50% 120%, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0) 60%),
-    var(--desk);
+    radial-gradient(85% 70% at 12% -6%, rgba(var(--lamp), 0.17), rgba(var(--lamp), 0) 58%),
+    radial-gradient(60% 46% at 30% 16%, rgba(var(--lamp), 0.08), rgba(var(--lamp), 0) 70%),
+    radial-gradient(135% 135% at 50% 42%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.46) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.12 0.006' numOctaves='3' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.24 0 0 0 0 0.19 0 0 0 0 0.14 0.55 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 1px, rgba(255, 255, 255, 0.02) 1px 2px, transparent 2px 132px),
+    linear-gradient(180deg, var(--desk-2), var(--desk) 45%, var(--desk-edge));
   transition: background var(--dur) var(--ease);
 }
 :root[data-theme='day'] .desk-bg {
   background:
-    radial-gradient(120% 90% at 50% -18%, rgba(255, 250, 235, 0.7), rgba(255, 250, 235, 0) 55%),
-    radial-gradient(90% 70% at 82% 8%, rgba(178, 56, 42, 0.05), rgba(178, 56, 42, 0) 60%),
-    radial-gradient(140% 120% at 50% 120%, rgba(150, 130, 95, 0.18), rgba(150, 130, 95, 0) 60%),
-    var(--desk);
+    radial-gradient(85% 70% at 12% -6%, rgba(var(--lamp), 0.6), rgba(var(--lamp), 0) 58%),
+    radial-gradient(135% 135% at 50% 42%, rgba(150, 130, 95, 0) 42%, rgba(150, 130, 95, 0.22) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.12 0.006' numOctaves='3' seed='7'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.62 0 0 0 0 0.55 0 0 0 0 0.44 0.4 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(90deg, rgba(120, 100, 70, 0.1) 0 1px, rgba(255, 255, 255, 0.25) 1px 2px, transparent 2px 132px),
+    linear-gradient(180deg, var(--desk-2), var(--desk) 45%, var(--desk-edge));
+}
+/* one lamp over everything: warm pool top-left, corners falling into shadow.
+   sits above the rooms so paper, wood and objects share a single light. */
+.desk-light {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  background:
+    radial-gradient(85% 65% at 14% -4%, rgba(var(--lamp), 0.5), rgba(var(--lamp), 0) 62%),
+    radial-gradient(125% 125% at 50% 46%, rgba(0, 0, 0, 0) 46%, rgba(8, 6, 4, 0.5) 100%);
+}
+:root[data-theme='day'] .desk-light {
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+  background:
+    radial-gradient(85% 65% at 14% -4%, rgba(255, 252, 240, 0.75), rgba(255, 252, 240, 0) 62%),
+    radial-gradient(125% 125% at 50% 46%, rgba(120, 100, 70, 0) 46%, rgba(120, 100, 70, 0.3) 100%);
 }
 .desk-grain {
   position: fixed;
@@ -122,6 +145,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .font-num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .soft { color: var(--on-desk-soft); }
 .faint { color: var(--on-desk-faint); }
+
+/* text that lives on paper gets a faint ink-bleed perturbation (defs in App) */
+.ink-bleed { filter: url(#ink-bleed); }
+/* an object resting on the desk: tight contact shadow + soft throw, down-right */
+.obj-contact { box-shadow: var(--contact), var(--paper-shadow); }
 
 button {
   font-family: inherit;

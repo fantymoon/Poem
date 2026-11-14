@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Icon } from '../Icon'
 import { Field, Toggle } from '../ui'
 import type { Poem } from '../../lib/types'
@@ -6,7 +7,21 @@ import { parseBody, bodyFromPoem, AUTHOR_COLORS, uid } from '../../lib/cardStyle
 export function ContentPanel({ poem, setPoem, bodyRef }: { poem: Poem; setPoem: (u: (p: Poem) => Poem, key?: string) => void; bodyRef?: React.RefObject<HTMLTextAreaElement> }) {
   const multiAuthor = poem.authors.length > 1
 
+  // The textarea keeps the raw text the user types (trailing newlines, blank lines).
+  // Round-tripping through parseBody on every keystroke would strip a trailing newline
+  // the moment Enter is pressed, so we only resync from the poem on external changes.
+  const [raw, setRaw] = useState(() => bodyFromPoem(poem))
+  const poemBody = bodyFromPoem(poem)
+  useEffect(() => {
+    setRaw((cur) => {
+      const parsed = parseBody(cur)
+      const normalized = bodyFromPoem({ ...poem, lines: parsed.lines, stanzaBreaks: parsed.stanzaBreaks })
+      return normalized === poemBody ? cur : poemBody
+    })
+  }, [poemBody])
+
   const onBody = (text: string) => {
+    setRaw(text)
     const { lines, stanzaBreaks } = parseBody(text)
     setPoem((p) => ({
       ...p,
@@ -49,7 +64,7 @@ export function ContentPanel({ poem, setPoem, bodyRef }: { poem: Poem; setPoem: 
         <textarea
           ref={bodyRef}
           className="text-input body-input font-poem"
-          value={bodyFromPoem(poem)}
+          value={raw}
           placeholder={'写一首，\n或者从桌上拿一首。\n\n空一行，就是下一节。'}
           rows={8}
           onChange={(e) => onBody(e.target.value)}

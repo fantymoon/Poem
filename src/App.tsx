@@ -16,6 +16,14 @@ function Ambient() {
     <>
       <div className="desk-bg" />
       <div className="desk-grain" />
+      <div className="desk-light" />
+      {/* shared ink-bleed perturbation for text printed on paper */}
+      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
+        <filter id="ink-bleed" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" />
+        </filter>
+      </svg>
       <div className="motes" aria-hidden="true">
         {motes.map((_, i) => {
           const left = (i * 67) % 100

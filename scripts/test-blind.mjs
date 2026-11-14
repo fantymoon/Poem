@@ -17,7 +17,7 @@ try {
   const linesVal = await page.evaluate(() => document.querySelector('.stepper-val')?.textContent)
   console.log('LINES=', linesVal)
   await page.evaluate(() => { [...document.querySelectorAll('button')].find(b => b.textContent.includes('折好纸'))?.click() })
-  await sleep(400)
+  await sleep(1000)
   await page.screenshot({ path: 'D:/CodeProject/Poem/.shots/blind-handoff.png' })
   const poems = ['旧站台的灯还亮着', '我把黄昏折进口袋', '铁轨记得每一双鞋', '风替我说完了再见', '渡口的船翻扣着', '像一句说完的话']
   const n = parseInt(linesVal, 10) || 6

@@ -17,7 +17,7 @@
 .folio-pill:hover { color: var(--on-desk); border-color: var(--on-desk-soft); }
 .folio-pill-active { color: var(--ink); background: var(--paper); border-color: var(--paper); }
 .folio-pill-n { font-size: 11px; opacity: 0.65; }
-.folio-pill-active .folio-pill-n { color: var(--seal); opacity: 1; }
+.folio-pill-active .folio-pill-n { color: var(--ink-soft); opacity: 1; }
 
 /* ---- scroll + masonry ---- */
 .folio-scroll { flex: 1; min-height: 0; overflow: auto; padding: 30px 32px 48px; }

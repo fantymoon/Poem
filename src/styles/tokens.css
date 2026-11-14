@@ -65,12 +65,19 @@
   --dur: 240ms;
   --dur-slow: 600ms;
 
-  /* shadows */
-  --paper-shadow: 0 2px 0 rgba(0, 0, 0, 0.15), 0 12px 30px rgba(0, 0, 0, 0.35);
-  --paper-shadow-lift: 0 4px 0 rgba(0, 0, 0, 0.16), 0 26px 60px rgba(0, 0, 0, 0.45);
-  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.28);
+  /* shadows — lamp sits top-left, so every object casts down-right:
+     a tight contact shadow hugging the base + one large soft throw */
+  --contact: 1px 2px 3px rgba(0, 0, 0, 0.34);
+  --paper-shadow: 1px 2px 3px rgba(0, 0, 0, 0.32), 10px 16px 34px rgba(0, 0, 0, 0.36);
+  --paper-shadow-lift: 2px 4px 6px rgba(0, 0, 0, 0.34), 18px 28px 60px rgba(0, 0, 0, 0.46);
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 6px 10px 26px rgba(0, 0, 0, 0.3);
 
-  --nav-h: 60px;
+  /* neutral "selected / active" ink-or-paper tone (red is reserved for seals) */
+  --select: var(--on-desk);
+  /* warm lamp colour, as an rgb triplet for rgba() mixing */
+  --lamp: 255, 196, 120;
+
+  --nav-h: 48px;
   --bottom-h: 64px;
 }
 
@@ -84,7 +91,9 @@
   --on-desk-faint: #9a9081;
   --line-desk: rgba(31, 28, 25, 0.12);
   --line-desk-strong: rgba(31, 28, 25, 0.2);
-  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 8px 24px rgba(120, 105, 80, 0.16);
-  --paper-shadow: 0 2px 0 rgba(120, 100, 70, 0.12), 0 12px 30px rgba(120, 100, 70, 0.22);
-  --paper-shadow-lift: 0 4px 0 rgba(120, 100, 70, 0.14), 0 26px 60px rgba(120, 100, 70, 0.3);
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 6px 10px 26px rgba(120, 105, 80, 0.18);
+  --contact: 1px 2px 3px rgba(120, 100, 70, 0.28);
+  --paper-shadow: 1px 2px 3px rgba(120, 100, 70, 0.2), 10px 16px 34px rgba(120, 100, 70, 0.24);
+  --paper-shadow-lift: 2px 4px 6px rgba(120, 100, 70, 0.22), 18px 28px 60px rgba(120, 100, 70, 0.32);
+  --lamp: 255, 244, 214;
 }

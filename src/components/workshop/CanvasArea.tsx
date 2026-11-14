@@ -162,7 +162,7 @@ export function CanvasArea(props: Props) {
         <div className="toolbar-group">
           <button className={`tool-btn ${zoom === 'fit' ? 'tool-active' : ''}`} onClick={() => setZoom('fit')} title="适应窗口"><Icon name="zoom" size={16} /> 适应</button>
           <button className={`tool-btn ${zoom !== 'fit' && Math.abs(zoomPct - 100) < 3 ? 'tool-active' : ''}`} onClick={() => setZoom(0.7)} title="实际大小">100%</button>
-          <span className="toolbar-zoom font-num">{zoom === 'fit' ? '适应' : zoomPct + '%'}</span>
+          <span className="toolbar-zoom font-num">{zoomPct}%</span>
         </div>
         <div className="toolbar-group">
           <button className={`tool-btn ${guides ? 'tool-active' : ''}`} onClick={() => setGuides((g) => !g)} title="版心辅助线"><Icon name="grid" size={16} /></button>
@@ -187,12 +187,52 @@ function EmptyState({ onWrite, navigate, today }: { onWrite: () => void; navigat
   ]
   return (
     <div className="empty-state">
-      <button className="empty-qian" onClick={() => navigate('/qian')} title="点开今日一签">
-        <span className="font-display empty-qian-no">{today.numberLabel}</span>
-        <span className="font-poem empty-qian-line">{today.poem}</span>
-        <span className="empty-qian-yi">宜 {today.yi}</span>
-      </button>
       <div className="empty-hint font-poem">写一首，或者从桌上拿一首</div>
+
+      {/* desktop: real objects resting around the card, pressing the desk edges */}
+      <div className="empty-desk">
+        <button className="desk-obj desk-pen" onClick={onWrite} title="自己写">
+          <span className="desk-obj-art pen-body"><span className="pen-band" /><span className="pen-nib" /></span>
+          <span className="desk-obj-label">自己写</span>
+        </button>
+
+        <button className="desk-obj desk-qian" onClick={() => navigate('/qian')} title="抽一签">
+          <span className="desk-obj-art desk-qian-paper">
+            <span className="desk-qian-no font-display">{today.numberLabel}</span>
+            <span className="desk-qian-line font-poem">{today.poem}</span>
+            <span className="desk-qian-yi">宜 {today.yi}</span>
+          </span>
+          <span className="desk-obj-label">抽一签</span>
+        </button>
+
+        <button className="desk-obj desk-dice" onClick={() => navigate('/dice')} title="摇骰子">
+          <span className="desk-obj-art dice-pair">
+            <span className="mini-die mini-die-a font-poem">象</span>
+            <span className="mini-die mini-die-b font-poem">意</span>
+          </span>
+          <span className="desk-obj-label">摇骰子</span>
+        </button>
+
+        <button className="desk-obj desk-fold" onClick={() => navigate('/blind')} title="两人盲写">
+          <span className="desk-obj-art fold-sheet">
+            <span className="fold-crease" />
+            <span className="fold-half fold-a font-poem">甲</span>
+            <span className="fold-half fold-b font-poem">乙</span>
+          </span>
+          <span className="desk-obj-label">两人盲写</span>
+        </button>
+
+        <button className="desk-obj desk-news" onClick={() => navigate('/blackout')} title="涂一页字">
+          <span className="desk-obj-art news-frag">
+            <span className="news-frag-head font-display">城南旧报</span>
+            <span className="news-frag-lines"><i /><i /><i /><i /><i /></span>
+            <span className="news-frag-black" />
+          </span>
+          <span className="desk-obj-label">涂一页字</span>
+        </button>
+      </div>
+
+      {/* mobile: compact labeled row */}
       <div className="empty-entries">
         {entries.map((e) => (
           <button key={e.label} className="empty-entry" onClick={e.action}>

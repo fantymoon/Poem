@@ -22,31 +22,39 @@ export function TemplateStrip({ templates, activeId, onApply, onPreview, onDelet
   onDelete?: (t: Template) => void
 }) {
   const sample = useMemo(() => SAMPLE, [])
+  const mid = (templates.length - 1) / 2
+  const current = templates.find((t) => t.id === activeId)
   return (
     <div className="template-strip" onMouseLeave={() => onPreview(null)}>
       <span className="template-strip-label">模板</span>
       <div className="template-scroll">
-        {templates.map((t) => (
-          <button
-            key={t.id}
-            className={`template-thumb ${activeId === t.id ? 'template-thumb-active' : ''}`}
-            onMouseEnter={() => onPreview(t)}
-            onFocus={() => onPreview(t)}
-            onClick={() => onApply(t)}
-            title={t.name}
-          >
-            <span className="template-thumb-card">
-              <CardSVG poem={sample} style={t.style} cssStyle={{ width: '100%', height: '100%', display: 'block' }} />
-            </span>
-            <span className="template-thumb-name">{t.name}{!t.builtIn && <span className="template-mine">·我的</span>}</span>
-            {!t.builtIn && onDelete && (
-              <span className="template-del" role="button" title="删除模板" onClick={(e) => { e.stopPropagation(); onDelete(t) }}>
-                <Icon name="close" size={11} />
+        {templates.map((t, i) => {
+          const fan = Math.max(-11, Math.min(11, (i - mid) * 4.5))
+          const active = activeId === t.id
+          return (
+            <button
+              key={t.id}
+              className={`template-thumb ${active ? 'template-thumb-active' : ''}`}
+              style={{ '--fan': `${fan}deg`, zIndex: active ? 60 : i + 1 } as React.CSSProperties}
+              onMouseEnter={() => onPreview(t)}
+              onFocus={() => onPreview(t)}
+              onClick={() => onApply(t)}
+              title={t.name}
+            >
+              <span className="template-thumb-card">
+                <CardSVG poem={sample} style={t.style} cssStyle={{ width: '100%', height: '100%', display: 'block' }} />
+                {!t.builtIn && <span className="template-mine-dot" title="我的模板" />}
               </span>
-            )}
-          </button>
-        ))}
+              {!t.builtIn && onDelete && (
+                <span className="template-del" role="button" title="删除模板" onClick={(e) => { e.stopPropagation(); onDelete(t) }}>
+                  <Icon name="close" size={11} />
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
+      <span className="template-current font-display">{current ? current.name : '自定义'}</span>
     </div>
   )
 }

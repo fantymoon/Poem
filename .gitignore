@@ -5,3 +5,4 @@ dist/
 scripts/dl/
 .DS_Store
 *.local
+doc/

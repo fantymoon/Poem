@@ -12,8 +12,11 @@ try {
   page.on('pageerror', (e) => errors.push('PAGEERROR: ' + e.message))
   const dl = 'D:/CodeProject/Poem/.shots/dl'
   fs.mkdirSync(dl, { recursive: true })
-  const client = await page.createCDPSession()
-  await client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: dl })
+  // Headless Chrome cancels blob downloads to disk; assert via CDP events + toast + blob size instead.
+  const client = await browser.target().createCDPSession()
+  await client.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dl, eventsEnabled: true }).catch(() => {})
+  const dlEvents = []
+  client.on('Browser.downloadWillBegin', (e) => dlEvents.push(e.suggestedFilename))
 
   const setVal = async (sel, val) => page.evaluate((s, v) => {
     const el = document.querySelector(s)
@@ -58,11 +61,24 @@ try {
   // export PNG 2x
   await page.evaluate(() => { const t = [...document.querySelectorAll('.style-tab')].find(e => e.textContent.includes('导出')); t?.click() })
   await new Promise(r => setTimeout(r, 200))
-  await clickText('导出 PNG')
-  await new Promise(r => setTimeout(r, 2500))
+  await clickText('导出 PNG', '.btn')
+  let toastText = ''
+  for (let i = 0; i < 10 && !toastText; i++) {
+    await new Promise(r => setTimeout(r, 400))
+    toastText = await page.evaluate(() => document.querySelector('.toast')?.textContent || '')
+  }
+  console.log('TOAST:', JSON.stringify(toastText))
+  console.log('DOWNLOAD_EVENTS:', JSON.stringify(dlEvents))
+  const blobCheck = await page.evaluate(async () => {
+    const ex = await import('/src/lib/export.ts')
+    const cs = await import('/src/lib/cardStyle.ts')
+    const poem = cs.makePoem({ source: 'free', title: '山居', lines: [{ text: '空山新雨后' }] })
+    const blob = await ex.rasterize(ex.cardSVGString({ id: 'x', poem, style: cs.defaultCardStyle, updatedAt: 0 }), 1000, 1333, 2)
+    return blob.size
+  })
+  console.log('PNG_BLOB_BYTES:', blobCheck)
   const files = fs.readdirSync(dl)
-  console.log('DOWNLOADS:', JSON.stringify(files))
-  for (const f of files) { const st = fs.statSync(dl + '/' + f); console.log('  ' + f + ' ' + st.size + ' bytes') }
+  console.log('DISK_FILES(headless may cancel):', JSON.stringify(files))
 
   console.log(errors.length ? 'CONSOLE_ERRORS:\n' + errors.join('\n') : 'NO_CONSOLE_ERRORS')
 } finally { await browser.close() }
