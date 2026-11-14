@@ -1,0 +1,90 @@
+/* 一笺 design tokens — "一张傍晚的书桌" */
+
+:root {
+  /* core palette (spec 1.2) */
+  --desk: #2b2724;
+  --desk-2: #353029;
+  --paper: #f3ede1;
+  --paper-2: #e6ddcb;
+  --ink: #1f1c19;
+  --ink-soft: #6e655b;
+  --seal: #b2382a;
+  --seal-deep: #8f2a1f;
+  --seal-bright: #c8493a;
+  --blind: #c9c1b3;
+
+  /* derived desk surfaces */
+  --desk-3: #3f382f;
+  --desk-edge: #211d1a;
+  --on-desk: #ece4d6;
+  --on-desk-soft: #a89e8e;
+  --on-desk-faint: #7c7264;
+  --panel: var(--desk-2);
+  --panel-2: var(--desk-3);
+  --line: rgba(31, 28, 25, 0.12);
+  --line-desk: rgba(236, 228, 214, 0.12);
+  --line-desk-strong: rgba(236, 228, 214, 0.22);
+
+  /* paper tones for swatches */
+  --paper-mi: #f3ede1;   /* 米白 */
+  --paper-zhu: #efe4c4;  /* 竹黄 */
+  --paper-fei: #f0dcd2;  /* 浅绯 */
+  --paper-qing: #d6dbd4; /* 青灰 */
+  --paper-mo: #23201c;   /* 墨底 */
+
+  /* author dot palette */
+  --author-1: #b2382a;
+  --author-2: #3f6b7d;
+  --author-3: #6d7a3a;
+  --author-4: #9a6a2f;
+
+  /* semantic */
+  --success: #6d7a3a;
+  --warning: #c08a2e;
+  --danger: #b2382a;
+  --info: #3f6b7d;
+
+  /* fonts (spec 1.3) */
+  --font-display: "STKaiti", "KaiTi", "SimKai", "Kaiti SC", "Songti SC", serif;
+  --font-poem: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", serif;
+  --font-ui: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-num: "SFMono-Regular", "Consolas", "Menlo", "Courier New", monospace;
+
+  /* type scale */
+  --t12: 12px;
+  --t14: 14px;
+  --t16: 16px;
+  --t20: 20px;
+  --t28: 28px;
+  --t40: 40px;
+
+  /* shape + motion */
+  --radius: 6px;
+  --radius-lg: 10px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur: 240ms;
+  --dur-slow: 600ms;
+
+  /* shadows */
+  --paper-shadow: 0 2px 0 rgba(0, 0, 0, 0.15), 0 12px 30px rgba(0, 0, 0, 0.35);
+  --paper-shadow-lift: 0 4px 0 rgba(0, 0, 0, 0.16), 0 26px 60px rgba(0, 0, 0, 0.45);
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.28);
+
+  --nav-h: 60px;
+  --bottom-h: 64px;
+}
+
+:root[data-theme='day'] {
+  --desk: #e9e3d6;
+  --desk-2: #f1ece0;
+  --desk-3: #f6f2e8;
+  --desk-edge: #d8cfbd;
+  --on-desk: #2b2724;
+  --on-desk-soft: #6e655b;
+  --on-desk-faint: #9a9081;
+  --line-desk: rgba(31, 28, 25, 0.12);
+  --line-desk-strong: rgba(31, 28, 25, 0.2);
+  --panel-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 8px 24px rgba(120, 105, 80, 0.16);
+  --paper-shadow: 0 2px 0 rgba(120, 100, 70, 0.12), 0 12px 30px rgba(120, 100, 70, 0.22);
+  --paper-shadow-lift: 0 4px 0 rgba(120, 100, 70, 0.14), 0 26px 60px rgba(120, 100, 70, 0.3);
+}

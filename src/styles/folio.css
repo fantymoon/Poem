@@ -1,0 +1,91 @@
+/* folio styles — 桌面上散放的一叠笺 */
+
+.folio-room { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+
+/* ---- head ---- */
+.folio-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 32px 14px; border-bottom: 1px solid var(--line-desk); flex-wrap: wrap; }
+.folio-head-left { display: flex; align-items: baseline; gap: 12px; }
+.folio-title { font-size: var(--t28); color: var(--on-desk); letter-spacing: 0.08em; }
+.folio-count { font-size: var(--t14); }
+.folio-head-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.folio-scatter { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding-right: 4px; }
+.folio-scatter .field-label { color: var(--on-desk-soft); }
+
+/* ---- filters ---- */
+.folio-filters { flex: none; display: flex; align-items: center; gap: 8px; padding: 12px 32px; border-bottom: 1px solid var(--line-desk); flex-wrap: wrap; }
+.folio-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 14px; border: 1px solid var(--line-desk-strong); border-radius: 999px; background: none; color: var(--on-desk-soft); font-size: var(--t14); transition: color var(--dur), background var(--dur), border-color var(--dur); }
+.folio-pill:hover { color: var(--on-desk); border-color: var(--on-desk-soft); }
+.folio-pill-active { color: var(--ink); background: var(--paper); border-color: var(--paper); }
+.folio-pill-n { font-size: 11px; opacity: 0.65; }
+.folio-pill-active .folio-pill-n { color: var(--seal); opacity: 1; }
+
+/* ---- scroll + masonry ---- */
+.folio-scroll { flex: 1; min-height: 0; overflow: auto; padding: 30px 32px 48px; }
+.folio-grid { columns: 232px; column-gap: 30px; }
+
+.folio-card { break-inside: avoid; margin: 0 0 30px; transform: rotate(var(--rot, 0deg)); transition: transform var(--dur) var(--ease); position: relative; }
+.folio-card:hover, .folio-card:focus-within { transform: rotate(0deg) translateY(-6px); z-index: 6; }
+
+.folio-card-paper { position: relative; border-radius: 2px; box-shadow: var(--paper-shadow); cursor: pointer; transition: box-shadow var(--dur) var(--ease); }
+.folio-card:hover .folio-card-paper, .folio-card:focus-within .folio-card-paper { box-shadow: var(--paper-shadow-lift); }
+/* a strip of washi tape pinning the card to the desk */
+.folio-card-paper::before { content: ''; position: absolute; top: -11px; left: 50%; width: 66px; height: 22px; transform: translateX(-50%) rotate(-2.5deg); background: rgba(216, 201, 168, 0.5); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); z-index: 3; pointer-events: none; }
+.folio-card-svg { display: block; width: 100%; height: auto; border-radius: 2px; }
+
+.folio-card-busy { opacity: 0.55; pointer-events: none; }
+
+/* ---- hover action bar ---- */
+.folio-card-actions { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 2px; padding: 8px 6px 7px; background: linear-gradient(to top, rgba(20, 17, 14, 0.82), rgba(20, 17, 14, 0)); opacity: 0; transform: translateY(8px); transition: opacity var(--dur), transform var(--dur); z-index: 4; }
+.folio-card:hover .folio-card-actions, .folio-card:focus-within .folio-card-actions { opacity: 1; transform: none; }
+.folio-act { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 4px; border: none; border-radius: 4px; background: rgba(243, 237, 225, 0.1); color: #f0e8da; font-size: 11px; transition: background var(--dur), color var(--dur); }
+.folio-act:hover { background: rgba(243, 237, 225, 0.22); }
+.folio-act:disabled { opacity: 0.5; }
+.folio-act-danger:hover { background: var(--seal); color: #f6ece0; }
+
+/* ---- meta caption ---- */
+.folio-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 11px; padding: 0 2px; }
+.folio-src { flex: none; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(236, 228, 214, 0.07); border: 1px solid var(--line-desk); color: var(--on-desk-soft); }
+.folio-src-blind { color: #82a7ba; }
+.folio-src-qian { color: #d0a75f; }
+.folio-src-dice { color: #9caa6c; }
+.folio-src-blackout { color: var(--blind); }
+.folio-card-title { flex: 1; min-width: 0; font-size: var(--t14); color: var(--on-desk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folio-date { flex: none; font-size: 11px; color: var(--on-desk-faint); }
+
+/* ---- empty state: an empty wooden frame ---- */
+.folio-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 100%; padding: 48px 20px; text-align: center; }
+.folio-empty-frame { position: relative; width: 264px; height: 200px; border: 14px solid; border-image: linear-gradient(135deg, #7c6650, #57432f 45%, #6b5742) 1; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.28), inset 0 8px 22px rgba(0, 0, 0, 0.42), var(--paper-shadow); display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.12); }
+:root[data-theme='day'] .folio-empty-frame { background: rgba(120, 100, 70, 0.08); box-shadow: inset 0 0 0 2px rgba(120, 100, 70, 0.2), inset 0 8px 22px rgba(120, 100, 70, 0.22), var(--paper-shadow); }
+.folio-empty-hook { position: absolute; top: -26px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: var(--on-desk-faint); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.folio-empty-hook::after { content: ''; position: absolute; top: 6px; left: 3px; width: 1px; height: 16px; background: var(--on-desk-faint); opacity: 0.6; }
+.folio-empty-ghost { font-size: 84px; color: var(--on-desk-faint); opacity: 0.22; user-select: none; }
+.folio-empty-line { font-size: var(--t28); color: var(--on-desk); letter-spacing: 0.1em; }
+.folio-empty-sub { font-size: var(--t14); max-width: 380px; line-height: 1.7; }
+.folio-empty-filter { gap: 20px; }
+
+/* ---- responsive ---- */
+@media (max-width: 900px) {
+  .folio-head, .folio-filters { padding-left: 20px; padding-right: 20px; }
+  .folio-scroll { padding: 24px 20px 40px; }
+  .folio-grid { columns: 200px; column-gap: 22px; }
+}
+@media (max-width: 560px) {
+  .folio-head { padding: 14px 16px 10px; }
+  .folio-title { font-size: var(--t20); }
+  .folio-head-actions { gap: 6px; }
+  .folio-head-actions .btn-sm { padding: 6px 9px; }
+  .folio-filters { padding: 10px 16px; gap: 6px; overflow-x: auto; flex-wrap: nowrap; }
+  .folio-pill { flex: none; padding: 5px 11px; font-size: var(--t12); }
+  .folio-scroll { padding: 20px 16px 36px; }
+  .folio-grid { columns: 150px; column-gap: 16px; }
+  .folio-card { margin-bottom: 20px; }
+  .folio-card-paper::before { width: 48px; height: 17px; top: -9px; }
+  .folio-act span { display: none; }
+  .folio-card-meta { gap: 6px; }
+  .folio-card-title { font-size: var(--t12); }
+  .folio-date { display: none; }
+}
+/* touch devices: no hover, so keep the actions reachable */
+@media (hover: none) {
+  .folio-card-actions { opacity: 1; transform: none; }
+}
